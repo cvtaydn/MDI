@@ -98,6 +98,14 @@ namespace MDI.Core
         }
         
         /// <summary>
+        /// Belirtilen service type için node'u getirir
+        /// </summary>
+        public DependencyNode GetNode(Type serviceType)
+        {
+            return _nodes.TryGetValue(serviceType, out var node) ? node : null;
+        }
+        
+        /// <summary>
         /// Dependency ilişkisi ekler
         /// </summary>
         public void AddDependency(Type serviceType, Type dependencyType)

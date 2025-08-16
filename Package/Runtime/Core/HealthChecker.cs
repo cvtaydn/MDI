@@ -271,12 +271,13 @@ namespace MDI.Core
             }
 
             // Check if dependencies are healthy
-            foreach (var dependency in node.Dependencies)
+            foreach (var dependencyType in node.Dependencies)
             {
-                if (dependency.Status == ServiceStatus.Error)
+                var dependencyNode = _container.DependencyGraph.GetNode(dependencyType);
+                if (dependencyNode != null && dependencyNode.Status == ServiceStatus.Error)
                 {
                     result.Status = HealthStatus.Warning;
-                    result.Message = $"Dependency '{dependency.Name}' is in error state";
+                    result.Message = $"Dependency '{dependencyNode.Name}' is in error state";
                     break;
                 }
             }

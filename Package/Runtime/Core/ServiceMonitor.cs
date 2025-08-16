@@ -63,6 +63,11 @@ namespace MDI.Core
         public long MemoryUsage { get; set; }
         
         /// <summary>
+        /// Tahmini memory kullanımı (bytes)
+        /// </summary>
+        public long EstimatedMemoryUsage { get; set; }
+        
+        /// <summary>
         /// Service durumu
         /// </summary>
         public ServiceStatus Status { get; set; }

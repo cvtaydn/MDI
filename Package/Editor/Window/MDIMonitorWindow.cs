@@ -43,7 +43,6 @@ namespace MDI.Editor.Window
         
         private void OnEnable()
         {
-            InitializeStyles();
             FindCurrentContainer();
         }
         

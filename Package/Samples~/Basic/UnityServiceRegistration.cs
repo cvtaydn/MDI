@@ -1,6 +1,7 @@
 using UnityEngine;
 using MDI.Containers;
 using MDI.Extensions;
+using MDI.Core;
 
 namespace MDI.Examples.Basic
 {
