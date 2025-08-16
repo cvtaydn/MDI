@@ -1,6 +1,6 @@
 {
   "name": "com.mdi.dependency-injection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "MDI+ - Modular Dependency Injection Plus",
   "description": "Advanced dependency injection system for Unity with pattern support, signal system, command pattern, and more. Built with SOLID principles, easy to use, and highly extensible.",
   "unity": "2022.3",
