@@ -1,0 +1,539 @@
+---
+alwaysApply: true
+---
+
+# MDI+ (Modular Dependency Injection Plus) Sistemi Kuralları
+
+## 🎯 Temel Mimari Prensipler
+Mimari olarak SOLID, Okunabilir, Geliştirilebilir kurallarını kullan.
+
+### SOLID Prensipleri
+- **S**ingle Responsibility: Her sınıf tek bir sorumluluğa sahip olmalı
+- **O**pen/Closed: Genişletilebilir ama değiştirilemez olmalı
+- **L**iskov Substitution: Alt sınıflar üst sınıfların yerine geçebilmeli
+- **I**nterface Segregation: Küçük ve odaklanmış interface'ler kullan
+- **D**ependency Inversion: Soyutlamalar üzerinden çalış, somut implementasyonlara bağımlı olma
+
+### Okunabilirlik Kuralları
+- Açık ve anlaşılır isimlendirme kullan
+- Karmaşık logic'i küçük method'lara böl
+- XML documentation tüm public API'ler için zorunlu
+- Code examples her public class için ekle
+
+### Geliştirilebilirlik Kuralları
+- Plugin sistemi ile genişletilebilir olmalı
+- Version compatibility korunmalı
+- Breaking changes için major version artırılmalı
+- Backward compatibility mümkün olduğunca sağlanmalı
+
+## 🏗️ Sistem Mimarisi Planı
+
+### 1. Core DI System (Temel Bağımlılık Enjeksiyonu)
+- **Container Types**: Singleton, Transient, Scoped, Lazy
+- **Lifecycle Management**: Awake/Start/OnDestroy entegrasyonu
+- **Validation System**: Circular dependency detection
+- **Performance Optimization**: Fast resolution, memory pooling
+
+### 2. Pattern System (Tasarım Desenleri)
+- **Signal System**: Event-driven communication
+- **Command Pattern**: Sequential, Parallel, Conditional execution
+- **Function Pipeline**: Data transformation chains
+- **Observer Pattern**: Reactive programming support
+- **Factory Pattern**: Object creation management
+
+### 3. Architecture Patterns (Mimari Desenler)
+- **MVS (Model-View-Service)**: Unity-specific architecture
+- **Repository Pattern**: Data access abstraction
+- **Unit of Work**: Transaction management
+- **Specification Pattern**: Complex query handling
+
+### 4. Unity Integration (Unity Entegrasyonu)
+- **MonoBehaviour Support**: Automatic injection
+- **ScriptableObject Support**: Configuration injection
+- **Prefab Injection**: Instant injection on creation
+- **Scene Scoping**: Scene-based service lifetime
+- **Editor Integration**: Custom inspectors, windows
+
+### 5. Async & Performance (Asenkron ve Performans)
+- **Async/Await Support**: Modern async programming
+- **Coroutine Integration**: Unity coroutine support
+- **Task Management**: Background task handling
+- **Performance Profiling**: Real-time metrics
+- **Memory Optimization**: Allocation reduction
+
+## 🚀 Geliştirme Aşamaları
+
+### Faz 1: Foundation (3-4 hafta)
+- Core DI container implementation
+- Basic service registration/resolution
+- Lifecycle management
+- Unit test framework
+
+### Faz 2: Pattern System (3-4 hafta)
+- Signal system implementation
+- Command pattern with execution engine
+- Function pipeline system
+- Observer pattern integration
+
+### Faz 3: Unity Integration (3-4 hafta)
+- MonoBehaviour injection system
+- ScriptableObject support
+- Prefab and scene scoping
+- Editor tooling development
+
+### Faz 4: Advanced Features (3-4 hafta)
+- Async/await support
+- Performance optimization
+- Memory management
+- Advanced validation
+
+### Faz 5: Developer Experience (2-3 hafta)
+- Visual debug tools
+- Code generation
+- Template system
+- Migration tools
+
+### Faz 6: Documentation & Examples (2-3 hafta)
+- API documentation
+- Interactive tutorials
+- Example projects
+- Performance benchmarks
+
+## 📋 Geliştirme Kuralları
+
+### Kod Kalitesi
+- Minimum %90 test coverage
+- Performance profiling her feature için
+- Memory leak prevention
+- Code review zorunlu
+
+### Unity Best Practices
+- Burst compiler compatibility
+- Job system integration
+- Memory allocation minimization
+- Editor performance optimization
+
+### Documentation Standards
+- XML documentation tüm public API'ler için
+- Code examples her public method için
+- Architecture diagrams
+- Performance guidelines
+
+### Version Management
+- Semantic versioning (SemVer)
+- Breaking changes için major version
+- Changelog maintenance
+- Migration guides
+
+## 📌 Kullanım Kolaylığı Kuralları
+
+### Attribute-Based Injection
+- [Inject] attribute ile otomatik injection
+- [SceneScoped] ile scene-based lifetime
+- [Persistent] ile save/load support
+- [HotReload] ile development-time reloading
+
+### Auto-Registration
+- Assembly scanning ile otomatik discovery
+- Convention-based registration
+- Smart defaults implementation
+- Error-free setup
+
+### Fluent API
+- Method chaining syntax
+- Intuitive method names
+- Builder pattern implementation
+- Type-safe operations
+
+## 🔍 Validation & Testing Kuralları
+
+### Unit Testing
+- Her public method için test
+- Mock framework integration
+- Dependency injection testing
+- Performance testing
+
+### Integration Testing
+- Unity integration tests
+- Scene loading tests
+- Prefab instantiation tests
+- Cross-system communication tests
+
+### Performance Testing
+- Memory allocation tests
+- Resolution speed benchmarks
+- Large dependency graph tests
+- Stress testing
+
+## 📱 Platform & Performance Kuralları
+
+### Mobile Optimization
+- Memory-efficient containers
+- Battery-friendly operations
+- Platform-specific optimizations
+- Performance profiling
+
+### Cross-Platform Support
+- Unity 2022.3+ compatibility
+- Platform-specific services
+- Conditional compilation
+- Universal API design
+
+## 🛠️ Developer Experience Kuralları
+
+### Editor Tools
+- Visual dependency graph
+- Service health monitoring
+- Performance profiler
+- Debug windows
+
+### Code Generation
+- Auto-generated service stubs
+- Interface implementations
+- Test class generation
+- Documentation generation
+
+### Template System
+- Pre-built service templates
+- Architecture templates
+- Testing templates
+- Migration templates
+
+## 📚 Documentation & Learning Kuralları
+
+### API Documentation
+- Comprehensive API reference
+- Code examples library
+- Best practices guide
+- Performance tips
+
+### Interactive Learning
+- Unity Editor tutorials
+- Step-by-step guides
+- Common patterns examples
+- Troubleshooting guide
+
+### Community Support
+- GitHub integration
+- Issue tracking
+- Feature requests
+- Community examples
+
+## 🎯 Success Metrics (Başarı Kriterleri)
+
+### Performance Metrics
+- Service resolution: < 1ms
+- Memory allocation: < 1KB per service
+- Startup time: < 100ms
+- Memory usage: < 10MB baseline
+
+### Usability Metrics
+- Setup time: < 5 minutes
+- Learning curve: < 2 hours
+- Error rate: < 1%
+- Developer satisfaction: > 90%
+
+### Quality Metrics
+- Test coverage: > 90%
+- Bug density: < 1 per 1000 lines
+- Documentation coverage: 100%
+- Performance regression: 0%
+
+## 🔄 Maintenance & Evolution Kuralları
+
+### Code Maintenance
+- Regular dependency updates
+- Security patches
+- Performance optimizations
+- Bug fixes
+
+### Feature Evolution
+- Backward compatibility
+- Gradual deprecation
+- Migration tools
+- Version compatibility
+
+### Community Engagement
+- Regular updates
+- Feature requests handling
+- Bug report responses
+- Documentation updates
+
+## 🌟 Gelişmiş Özellikler ve Pattern'lar
+
+### 6. Reactive Programming System
+- **Reactive Properties**: Observable data binding
+- **Reactive Commands**: Async command execution
+- **Reactive Collections**: Observable list/dictionary
+- **Reactive Streams**: Data flow management
+- **Debounce/Throttle**: Performance optimization
+
+### 7. Advanced Command System
+- **Command Chaining**: Sequential execution with conditions
+- **Command Batching**: Multiple commands in single transaction
+- **Command History**: Undo/Redo support
+- **Command Validation**: Pre-execution validation
+- **Command Rollback**: Error handling with rollback
+
+### 8. Smart Signal System
+- **Signal Filtering**: Conditional signal handling
+- **Signal Routing**: Dynamic signal routing
+- **Signal Batching**: Multiple signals in single frame
+- **Signal Priority**: Priority-based signal handling
+- **Signal Persistence**: Persistent signal storage
+
+### 9. Advanced Pipeline System
+- **Conditional Pipeline**: Branching execution paths
+- **Parallel Pipeline**: Multi-threaded processing
+- **Pipeline Caching**: Result caching and memoization
+- **Pipeline Validation**: Input/output validation
+- **Pipeline Monitoring**: Real-time performance tracking
+
+### 10. Memory Management System
+- **Object Pooling**: Automatic object recycling
+- **Weak References**: Memory leak prevention
+- **Garbage Collection**: Optimized GC integration
+- **Memory Profiling**: Real-time memory usage
+- **Memory Compression**: Data compression for large objects
+
+### 11. Security & Validation System
+- **Input Validation**: Comprehensive input checking
+- **Security Scanning**: Vulnerability detection
+- **Access Control**: Service access permissions
+- **Data Encryption**: Sensitive data protection
+- **Audit Logging**: Complete operation logging
+
+### 12. Cross-Platform Compatibility
+- **Platform Abstraction**: Platform-independent APIs
+- **Conditional Compilation**: Platform-specific code
+- **Feature Detection**: Runtime capability checking
+- **Fallback Systems**: Graceful degradation
+- **Performance Adaptation**: Platform-specific optimization
+
+## 🎮 Game Development Specific Features
+
+### 13. Game State Management
+- **State Machines**: Hierarchical state management
+- **Save/Load System**: Persistent game state
+- **Checkpoint System**: Game progress management
+- **Multiplayer Sync**: Network state synchronization
+- **Replay System**: Game action replay
+
+### 14. AI & Behavior System
+- **Behavior Trees**: AI decision making
+- **Blackboard System**: AI data sharing
+- **Task Scheduling**: AI task management
+- **Pathfinding Integration**: Navigation system support
+- **AI Debugging**: Visual AI debugging tools
+
+### 15. Audio & Visual Integration
+- **Audio Management**: Centralized audio control
+- **Visual Effects**: Particle system management
+- **Animation System**: Skeletal animation support
+- **UI Management**: User interface integration
+- **Camera System**: Multi-camera management
+
+## 🔧 Enterprise & Scalability Features
+
+### 16. Microservices Architecture
+- **Service Discovery**: Automatic service detection
+- **Load Balancing**: Service distribution
+- **Circuit Breaker**: Fault tolerance patterns
+- **Service Mesh**: Inter-service communication
+- **API Gateway**: Centralized API management
+
+### 17. Data Management
+- **Caching System**: Multi-level caching
+- **Database Integration**: ORM support
+- **Data Validation**: Schema validation
+- **Data Migration**: Version migration tools
+- **Backup & Recovery**: Data protection systems
+
+### 18. Monitoring & Analytics
+- **Performance Metrics**: Real-time performance data
+- **Error Tracking**: Comprehensive error logging
+- **Usage Analytics**: User behavior tracking
+- **Health Checks**: System health monitoring
+- **Alert System**: Automated notifications
+
+## 🚀 Advanced Development Tools
+
+### 19. Code Generation & Analysis
+- **Auto-Implementation**: Interface auto-implementation
+- **Code Templates**: Pre-built code patterns
+- **Static Analysis**: Code quality checking
+- **Refactoring Tools**: Automated code improvement
+- **Documentation Generation**: Auto-generated docs
+
+### 20. Testing & Quality Assurance
+- **Property-Based Testing**: Automated test generation
+- **Mutation Testing**: Code quality validation
+- **Performance Testing**: Load and stress testing
+- **Security Testing**: Vulnerability assessment
+- **Integration Testing**: Cross-system testing
+
+### 21. Deployment & DevOps
+- **CI/CD Integration**: Automated deployment
+- **Environment Management**: Multi-environment support
+- **Configuration Management**: Dynamic configuration
+- **Rollback System**: Quick deployment rollback
+- **Monitoring Integration**: Production monitoring
+
+## 📊 Advanced Performance Features
+
+### 22. Optimization Systems
+- **JIT Compilation**: Runtime code optimization
+- **Memory Pooling**: Advanced memory management
+- **Lazy Loading**: On-demand resource loading
+- **Background Processing**: Non-blocking operations
+- **Resource Management**: Automatic resource cleanup
+
+### 23. Profiling & Debugging
+- **Real-Time Profiling**: Live performance monitoring
+- **Memory Profiling**: Memory usage analysis
+- **Network Profiling**: Communication monitoring
+- **Custom Metrics**: User-defined measurements
+- **Performance Alerts**: Automatic performance warnings
+
+## 🔐 Security & Compliance
+
+### 24. Security Features
+- **Authentication**: Multi-factor authentication
+- **Authorization**: Role-based access control
+- **Data Protection**: Encryption and hashing
+- **Audit Trails**: Complete operation logging
+- **Compliance**: GDPR, HIPAA, SOX compliance
+
+### 25. Privacy & Data Protection
+- **Data Anonymization**: Personal data protection
+- **Consent Management**: User consent tracking
+- **Data Retention**: Automatic data cleanup
+- **Privacy Controls**: User privacy settings
+- **Compliance Reporting**: Regulatory compliance
+
+## 🌐 Internationalization & Localization
+
+### 26. Multi-Language Support
+- **Localization System**: Multi-language support
+- **Culture Management**: Regional settings
+- **Text Management**: Dynamic text replacement
+- **Format Localization**: Regional formatting
+- **Translation Tools**: Automated translation support
+
+## 📱 Mobile & Cloud Integration
+
+### 27. Mobile-Specific Features
+- **Battery Optimization**: Power-efficient operations
+- **Offline Support**: Offline functionality
+- **Push Notifications**: Cloud messaging
+- **Background Processing**: Background task management
+- **Device Adaptation**: Device-specific optimization
+
+### 28. Cloud Integration
+- **Cloud Storage**: Remote data storage
+- **Cloud Computing**: Distributed processing
+- **API Management**: Cloud API integration
+- **Scalability**: Auto-scaling support
+- **Disaster Recovery**: Cloud-based backup
+
+## 🎯 Geliştirme Öncelikleri ve Zaman Çizelgesi
+
+### Phase 1: Core Foundation (4-5 hafta) - YÜKSEK ÖNCELİK
+- **Week 1-2**: Basic DI Container (Singleton, Transient, Scoped)
+- **Week 3**: Lifecycle Management (Awake/Start/OnDestroy)
+- **Week 4**: Basic Validation (Circular Dependency Detection)
+- **Week 5**: Unit Testing Framework
+
+### Phase 2: Unity Integration (3-4 hafta) - YÜKSEK ÖNCELİK
+- **Week 1**: MonoBehaviour Injection System
+- **Week 2**: ScriptableObject Support
+- **Week 3**: Scene/Prefab Scoping
+- **Week 4**: Basic Editor Tools
+
+### Phase 3: Pattern System (4-5 hafta) - ORTA ÖNCELİK
+- **Week 1-2**: Signal System (Event Bus)
+- **Week 3**: Command Pattern (Basic)
+- **Week 4**: Function Pipeline (Basic)
+- **Week 5**: Observer Pattern
+
+### Phase 4: Advanced Patterns (3-4 hafta) - ORTA ÖNCELİK
+- **Week 1**: Advanced Command System (Chaining, Batching)
+- **Week 2**: Smart Signal System (Filtering, Routing)
+- **Week 3**: Advanced Pipeline (Conditional, Parallel)
+- **Week 4**: Reactive Programming System
+
+### Phase 5: Performance & Optimization (3-4 hafta) - ORTA ÖNCELİK
+- **Week 1**: Memory Management (Object Pooling, Weak References)
+- **Week 2**: Performance Profiling & Monitoring
+- **Week 3**: Async/Await Support
+- **Week 4**: Memory Optimization
+
+### Phase 6: Developer Experience (2-3 hafta) - DÜŞÜK ÖNCELİK
+- **Week 1**: Visual Debug Tools
+- **Week 2**: Code Generation & Templates
+- **Week 3**: Migration Tools
+
+### Phase 7: Enterprise Features (3-4 hafta) - DÜŞÜK ÖNCELİK
+- **Week 1**: Security & Validation System
+- **Week 2**: Data Management & Caching
+- **Week 3**: Monitoring & Analytics
+- **Week 4**: Microservices Architecture
+
+### Phase 8: Game Development Features (2-3 hafta) - DÜŞÜK ÖNCELİK
+- **Week 1**: Game State Management
+- **Week 2**: AI & Behavior System
+- **Week 3**: Audio & Visual Integration
+
+### Phase 9: Documentation & Examples (2-3 hafta) - DÜŞÜK ÖNCELİK
+- **Week 1**: API Documentation
+- **Week 2**: Interactive Tutorials
+- **Week 3**: Example Projects
+
+### Phase 10: Testing & Quality Assurance (2-3 hafta) - DÜŞÜK ÖNCELİK
+- **Week 1**: Advanced Testing (Property-Based, Mutation)
+- **Week 2**: Performance Testing
+- **Week 3**: Security Testing
+
+## 🔄 Geliştirme Metodolojisi
+
+### Agile Development
+- **Sprint Duration**: 2 hafta
+- **Daily Standups**: Her gün progress review
+- **Sprint Review**: Her 2 haftada bir demo
+- **Retrospective**: Her sprint sonunda process improvement
+
+### Quality Gates
+- **Code Review**: Her PR için mandatory review
+- **Test Coverage**: Minimum %90 coverage requirement
+- **Performance**: Service resolution < 1ms requirement
+- **Documentation**: Her public API için XML docs
+
+### Risk Management
+- **Technical Risks**: Performance bottlenecks, memory leaks
+- **Schedule Risks**: Complex feature development delays
+- **Quality Risks**: Breaking changes, compatibility issues
+- **Mitigation**: Regular testing, incremental development
+
+## 📊 Success Metrics & KPIs
+
+### Development Metrics
+- **Velocity**: Story points per sprint
+- **Quality**: Bug count per sprint
+- **Performance**: Response time improvements
+- **Coverage**: Test coverage percentage
+
+### User Experience Metrics
+- **Setup Time**: < 5 minutes for basic setup
+- **Learning Curve**: < 2 hours for basic usage
+- **Error Rate**: < 1% for common operations
+- **Developer Satisfaction**: > 90% satisfaction score
+
+### Technical Metrics
+- **Performance**: Service resolution < 1ms
+- **Memory**: < 1KB per service allocation
+- **Startup**: < 100ms initialization time
+- **Scalability**: Support for 1000+ services
+
+Bu kurallar MDI+ sisteminin geliştirilmesi sırasında takip edilecek temel prensipleri ve standartları belirler.
+
+Mimari olarak Solid , Okunabilir , Geliştirilebilir kurallarını kullan.

@@ -1,0 +1,46 @@
+{
+  "name": "com.mdi.dependency-injection",
+  "version": "1.0.0",
+  "displayName": "MDI+ - Modular Dependency Injection Plus",
+  "description": "Advanced dependency injection system for Unity with pattern support, signal system, command pattern, and more. Built with SOLID principles, easy to use, and highly extensible.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "keywords": [
+    "dependency-injection",
+    "di",
+    "ioc",
+    "architecture",
+    "patterns",
+    "signal",
+    "command",
+    "pipeline",
+    "reactive",
+    "unity",
+    "solid",
+    "clean-architecture"
+  ],
+  "author": {
+    "name": "MDI+ Team",
+    "email": "info@mdi.com",
+    "url": "https://github.com/mdi-plus"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdi-plus/mdi-unity.git"
+  },
+  "documentationUrl": "https://github.com/mdi-plus/mdi-unity/wiki",
+  "changelogUrl": "https://github.com/mdi-plus/mdi-unity/blob/main/CHANGELOG.md",
+  "samples": [
+    {
+      "displayName": "Basic DI Example",
+      "description": "Basic dependency injection usage example",
+      "path": "Samples~/Basic"
+    },
+    {
+      "displayName": "Advanced Patterns",
+      "description": "Advanced pattern usage examples",
+      "path": "Samples~/Advanced"
+    }
+  ]
+}
