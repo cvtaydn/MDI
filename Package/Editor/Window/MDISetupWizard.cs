@@ -27,7 +27,7 @@ namespace MDI.Editor.Window
         private bool _enableHealthCheck = true;
         private bool _createExampleServices = true;
         private string _gameManagerName = "GameManager";
-        private string _bootstrapperName = "MDIBootstrapper";
+        private string _bootstrapperName = "GameBootstrapper";
 
         // Styles
         private GUIStyle _titleStyle;
@@ -46,41 +46,70 @@ namespace MDI.Editor.Window
 
         private void OnEnable()
         {
-            InitializeStyles();
+            // Styles will be initialized in OnGUI when needed
         }
 
         private void InitializeStyles()
         {
-            _titleStyle = new GUIStyle(EditorStyles.largeLabel)
+            try
             {
-                fontSize = 18,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = new Color(0.2f, 0.6f, 1f) }
-            };
+                _titleStyle = new GUIStyle(EditorStyles.largeLabel)
+                {
+                    fontSize = 18,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = { textColor = new Color(0.2f, 0.6f, 1f) }
+                };
 
-            _stepStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = 14,
-                alignment = TextAnchor.MiddleCenter
-            };
+                _stepStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    fontSize = 14,
+                    alignment = TextAnchor.MiddleCenter
+                };
 
-            _buttonStyle = new GUIStyle(GUI.skin.button)
-            {
-                fontSize = 12,
-                fixedHeight = 30
-            };
+                if (GUI.skin != null)
+                {
+                    _buttonStyle = new GUIStyle(GUI.skin.button)
+                    {
+                        fontSize = 12,
+                        fixedHeight = 30
+                    };
 
-            _boxStyle = new GUIStyle(GUI.skin.box)
+                    _boxStyle = new GUIStyle(GUI.skin.box)
+                    {
+                        padding = new RectOffset(15, 15, 15, 15),
+                        margin = new RectOffset(10, 10, 10, 10)
+                    };
+                }
+                else
+                {
+                    // Fallback styles if GUI.skin is null
+                    _buttonStyle = new GUIStyle()
+                    {
+                        fontSize = 12,
+                        fixedHeight = 30
+                    };
+
+                    _boxStyle = new GUIStyle()
+                    {
+                        padding = new RectOffset(15, 15, 15, 15),
+                        margin = new RectOffset(10, 10, 10, 10)
+                    };
+                }
+            }
+            catch (System.Exception)
             {
-                padding = new RectOffset(15, 15, 15, 15),
-                margin = new RectOffset(10, 10, 10, 10)
-            };
+                // If styles can't be initialized, use basic fallbacks
+                _titleStyle = EditorStyles.largeLabel;
+                _stepStyle = EditorStyles.boldLabel;
+                _buttonStyle = new GUIStyle();
+                _boxStyle = new GUIStyle();
+            }
         }
 
         private void OnGUI()
         {
-            if (_titleStyle == null)
+            if (_titleStyle == null || _boxStyle == null)
                 InitializeStyles();
 
             DrawHeader();
@@ -345,13 +374,12 @@ namespace MDI.Editor.Window
 
         private void CreateServiceInterface(string interfaceName, string path)
         {
-            var content = $@"namespace Services
+            var content = $@"using UnityEngine;
+
+public interface {interfaceName}
 {{
-    public interface {interfaceName}
-    {{
-        void Initialize();
-        void Cleanup();
-    }}
+    void Initialize();
+    void Cleanup();
 }}";
             File.WriteAllText($"{path}/{interfaceName}.cs", content);
         }
@@ -359,21 +387,17 @@ namespace MDI.Editor.Window
         private void CreateServiceImplementation(string className, string interfaceName, string path)
         {
             var content = $@"using UnityEngine;
-using Services;
 
-namespace Services.Implementations
+public class {className} : {interfaceName}
 {{
-    public class {className} : {interfaceName}
+    public void Initialize()
     {{
-        public void Initialize()
-        {{
-            Debug.Log(""{className} initialized"");
-        }}
-        
-        public void Cleanup()
-        {{
-            Debug.Log(""{className} cleaned up"");
-        }}
+        Debug.Log(""{className} initialized"");
+    }}
+    
+    public void Cleanup()
+    {{
+        Debug.Log(""{className} cleaned up"");
     }}
 }}";
             File.WriteAllText($"{path}/{className}.cs", content);
@@ -390,9 +414,6 @@ namespace Services.Implementations
         {
             return $@"using UnityEngine;
 using MDI.Containers;
-using MDI.Extensions;
-using Services;
-using Services.Implementations;
 
 public class {_bootstrapperName} : MonoBehaviour
 {{
@@ -405,7 +426,7 @@ public class {_bootstrapperName} : MonoBehaviour
     {{
         SetupContainer();
         RegisterServices();
-        MDIUnityHelper.GlobalContainer = container;
+        MDI.Core.MDI.GlobalContainer = container;
         Debug.Log(""✅ MDI+ Container başarıyla kuruldu!"");
     }}
     
@@ -439,20 +460,17 @@ public class {_bootstrapperName} : MonoBehaviour
         private string GenerateGameManagerCode()
         {
             return $@"using UnityEngine;
-using MDI.Core;
-using MDI.Extensions;
-using Services;
 
 public class {_gameManagerName} : MonoBehaviour
 {{
-    [Inject] private ILogger logger;
-    [Inject] private IGameService gameService;
-    [Inject] private IAudioService audioService;
-    [Inject] private IUIService uiService;
+    [MDI.Extensions.Inject] private ILogger logger;
+    [MDI.Extensions.Inject] private IGameService gameService;
+    [MDI.Extensions.Inject] private IAudioService audioService;
+    [MDI.Extensions.Inject] private IUIService uiService;
 
     private void Awake()
     {{
-        MDI.Inject(this);
+        MDI.Core.MDI.Inject(this);
     }}
 
     private void Start()

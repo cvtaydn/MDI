@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using MDI.Core;
 using MDI.Attributes;
+using MDI.Bootstrap;
 using MDI.Containers;
 using MDI.Extensions;
 
@@ -18,27 +19,27 @@ namespace MDI.Editor.Validation
     {
         private static MDIDependencyValidator _instance;
         public static MDIDependencyValidator Instance => _instance ??= new MDIDependencyValidator();
-        
+
         private readonly Dictionary<Type, List<Type>> _dependencyGraph = new Dictionary<Type, List<Type>>();
         private readonly Dictionary<Type, ValidationResult> _validationCache = new Dictionary<Type, ValidationResult>();
         private readonly HashSet<Type> _registeredServices = new HashSet<Type>();
-        
+
         public event Action<ValidationResult> OnValidationCompleted;
-        
+
         /// <summary>
         /// Validates all dependencies in the current container
         /// </summary>
         public ValidationResult ValidateAll()
         {
             var result = new ValidationResult();
-            
+
             try
             {
                 // Clear cache
                 _validationCache.Clear();
                 _dependencyGraph.Clear();
                 _registeredServices.Clear();
-                
+
                 // Find current container
                 var container = FindCurrentContainer();
                 if (container == null)
@@ -46,32 +47,32 @@ namespace MDI.Editor.Validation
                     result.AddError("No active MDI container found");
                     return result;
                 }
-                
+
                 // Build dependency graph
                 BuildDependencyGraph(container);
-                
+
                 // Validate circular dependencies
                 ValidateCircularDependencies(result);
-                
+
                 // Validate missing dependencies
                 ValidateMissingDependencies(result);
-                
+
                 // Validate service lifetimes
                 ValidateServiceLifetimes(result);
-                
+
                 // Validate injection attributes
                 ValidateInjectionAttributes(result);
-                
+
                 OnValidationCompleted?.Invoke(result);
             }
             catch (Exception ex)
             {
                 result.AddError($"Validation failed: {ex.Message}");
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// Validates a specific service type
         /// </summary>
@@ -81,9 +82,9 @@ namespace MDI.Editor.Validation
             {
                 return cachedResult;
             }
-            
+
             var result = new ValidationResult();
-            
+
             try
             {
                 var container = FindCurrentContainer();
@@ -92,13 +93,13 @@ namespace MDI.Editor.Validation
                     result.AddError("No active MDI container found");
                     return result;
                 }
-                
+
                 // Check if service is registered
                 if (!IsServiceRegistered(container, serviceType))
                 {
                     result.AddError($"Service {serviceType.Name} is not registered");
                 }
-                
+
                 // Validate dependencies
                 var dependencies = GetServiceDependencies(serviceType);
                 foreach (var dependency in dependencies)
@@ -108,33 +109,33 @@ namespace MDI.Editor.Validation
                         result.AddError($"Dependency {dependency.Name} for service {serviceType.Name} is not registered");
                     }
                 }
-                
+
                 // Check for circular dependencies
                 var visited = new HashSet<Type>();
                 var recursionStack = new HashSet<Type>();
-                
+
                 if (HasCircularDependency(serviceType, visited, recursionStack))
                 {
                     result.AddError($"Circular dependency detected for service {serviceType.Name}");
                 }
-                
+
                 _validationCache[serviceType] = result;
             }
             catch (Exception ex)
             {
                 result.AddError($"Failed to validate service {serviceType.Name}: {ex.Message}");
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// Validates MonoBehaviour injection points
         /// </summary>
         public ValidationResult ValidateMonoBehaviour(MonoBehaviour monoBehaviour)
         {
             var result = new ValidationResult();
-            
+
             try
             {
                 var container = FindCurrentContainer();
@@ -143,26 +144,29 @@ namespace MDI.Editor.Validation
                     result.AddWarning("No active MDI container found for MonoBehaviour validation");
                     return result;
                 }
-                
+
                 var type = monoBehaviour.GetType();
                 var injectableFields = GetInjectableFields(type);
-                
+
                 foreach (var field in injectableFields)
                 {
                     var fieldType = field.FieldType;
+                    var isRegistered = IsServiceRegistered(container, fieldType);
                     
-                    if (!IsServiceRegistered(container, fieldType))
+                    Debug.Log($"[MDI+ Validator] Checking field '{field.Name}' of type {fieldType.Name} in {type.Name}: {(isRegistered ? "REGISTERED" : "NOT REGISTERED")}");
+
+                    if (!isRegistered)
                     {
                         result.AddError($"Injectable field '{field.Name}' of type {fieldType.Name} in {type.Name} is not registered");
                     }
                 }
-                
+
                 var injectableProperties = GetInjectableProperties(type);
-                
+
                 foreach (var property in injectableProperties)
                 {
                     var propertyType = property.PropertyType;
-                    
+
                     if (!IsServiceRegistered(container, propertyType))
                     {
                         result.AddError($"Injectable property '{property.Name}' of type {propertyType.Name} in {type.Name} is not registered");
@@ -173,10 +177,10 @@ namespace MDI.Editor.Validation
             {
                 result.AddError($"Failed to validate MonoBehaviour {monoBehaviour.GetType().Name}: {ex.Message}");
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// Real-time validation during play mode
         /// </summary>
@@ -185,7 +189,7 @@ namespace MDI.Editor.Validation
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
-        
+
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.EnteredPlayMode)
@@ -199,14 +203,14 @@ namespace MDI.Editor.Validation
                 EditorApplication.update -= Instance.PerformRealTimeValidation;
             }
         }
-        
+
         private void PerformRealTimeValidation()
         {
             // Throttle validation to avoid performance issues
             if (Time.realtimeSinceStartup % 2f < 0.1f) // Every 2 seconds
             {
                 var result = ValidateAll();
-                
+
                 if (result.HasErrors)
                 {
                     foreach (var error in result.Errors)
@@ -214,7 +218,7 @@ namespace MDI.Editor.Validation
                         Debug.LogError($"[MDI+ Validation] {error}");
                     }
                 }
-                
+
                 if (result.HasWarnings)
                 {
                     foreach (var warning in result.Warnings)
@@ -224,13 +228,13 @@ namespace MDI.Editor.Validation
                 }
             }
         }
-        
+
         private void BuildDependencyGraph(MDIContainer container)
         {
             // Get all registered services using reflection
             var containerType = container.GetType();
             var servicesField = containerType.GetField("_services", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             if (servicesField?.GetValue(container) is Dictionary<Type, object> services)
             {
                 foreach (var serviceType in services.Keys)
@@ -241,12 +245,12 @@ namespace MDI.Editor.Validation
                 }
             }
         }
-        
+
         private void ValidateCircularDependencies(ValidationResult result)
         {
             var visited = new HashSet<Type>();
             var recursionStack = new HashSet<Type>();
-            
+
             foreach (var serviceType in _registeredServices)
             {
                 if (!visited.Contains(serviceType))
@@ -258,14 +262,14 @@ namespace MDI.Editor.Validation
                 }
             }
         }
-        
+
         private void ValidateMissingDependencies(ValidationResult result)
         {
             foreach (var kvp in _dependencyGraph)
             {
                 var serviceType = kvp.Key;
                 var dependencies = kvp.Value;
-                
+
                 foreach (var dependency in dependencies)
                 {
                     if (!_registeredServices.Contains(dependency))
@@ -275,14 +279,14 @@ namespace MDI.Editor.Validation
                 }
             }
         }
-        
+
         private void ValidateServiceLifetimes(ValidationResult result)
         {
             // Check for potential lifetime mismatches
             foreach (var serviceType in _registeredServices)
             {
                 var dependencies = GetServiceDependencies(serviceType);
-                
+
                 foreach (var dependency in dependencies)
                 {
                     // Add lifetime validation logic here
@@ -290,24 +294,24 @@ namespace MDI.Editor.Validation
                 }
             }
         }
-        
+
         private void ValidateInjectionAttributes(ValidationResult result)
         {
             // Find all MonoBehaviours with [Inject] attributes
             var monoBehaviours = UnityEngine.Object.FindObjectsOfType<MonoBehaviour>();
-            
+
             foreach (var mb in monoBehaviours)
             {
                 var mbResult = ValidateMonoBehaviour(mb);
                 result.Merge(mbResult);
             }
         }
-        
+
         private bool HasCircularDependency(Type serviceType, HashSet<Type> visited, HashSet<Type> recursionStack)
         {
             visited.Add(serviceType);
             recursionStack.Add(serviceType);
-            
+
             if (_dependencyGraph.TryGetValue(serviceType, out var dependencies))
             {
                 foreach (var dependency in dependencies)
@@ -325,19 +329,19 @@ namespace MDI.Editor.Validation
                     }
                 }
             }
-            
+
             recursionStack.Remove(serviceType);
             return false;
         }
-        
+
         private List<Type> GetServiceDependencies(Type serviceType)
         {
             var dependencies = new List<Type>();
-            
+
             // Get constructor dependencies
             var constructors = serviceType.GetConstructors();
             var constructor = constructors.OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
-            
+
             if (constructor != null)
             {
                 foreach (var parameter in constructor.GetParameters())
@@ -345,92 +349,111 @@ namespace MDI.Editor.Validation
                     dependencies.Add(parameter.ParameterType);
                 }
             }
-            
+
             // Get field dependencies
             var injectableFields = GetInjectableFields(serviceType);
             dependencies.AddRange(injectableFields.Select(f => f.FieldType));
-            
+
             // Get property dependencies
             var injectableProperties = GetInjectableProperties(serviceType);
             dependencies.AddRange(injectableProperties.Select(p => p.PropertyType));
-            
+
             return dependencies.Distinct().ToList();
         }
-        
+
         private FieldInfo[] GetInjectableFields(Type type)
         {
             return type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                      .Where(f => f.GetCustomAttribute<InjectAttribute>() != null)
-                      .ToArray();
+                .Where(f => f.GetCustomAttribute<InjectAttribute>() != null)
+                .ToArray();
         }
-        
+
         private PropertyInfo[] GetInjectableProperties(Type type)
         {
             return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                      .Where(p => p.GetCustomAttribute<InjectAttribute>() != null)
-                      .ToArray();
+                .Where(p => p.GetCustomAttribute<InjectAttribute>() != null)
+                .ToArray();
         }
-        
+
         private bool IsServiceRegistered(MDIContainer container, Type serviceType)
         {
             try
             {
-                // Try to resolve the service to check if it's registered
-                var resolveMethod = container.GetType().GetMethod("IsRegistered");
-                if (resolveMethod != null)
-                {
-                    var genericMethod = resolveMethod.MakeGenericMethod(serviceType);
-                    return (bool)genericMethod.Invoke(container, null);
-                }
+                Debug.Log($"[MDI+ Validator] Checking if {serviceType.Name} is registered in container");
                 
-                // Fallback: try to resolve
-                var resolveGenericMethod = container.GetType().GetMethod("Resolve");
-                if (resolveGenericMethod != null)
+                // Use the Type-based IsRegistered method directly to avoid ambiguous match
+                var result = container.IsRegistered(serviceType);
+                Debug.Log($"[MDI+ Validator] IsRegistered result for {serviceType.Name}: {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[MDI+ Validator] Exception in IsServiceRegistered for {serviceType.Name}: {ex.Message}");
+                
+                // Fallback: try to resolve using Type-based method
+                try
                 {
-                    var genericResolveMethod = resolveGenericMethod.MakeGenericMethod(serviceType);
-                    try
-                    {
-                        genericResolveMethod.Invoke(container, null);
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    Debug.Log($"[MDI+ Validator] Trying fallback resolve for {serviceType.Name}");
+                    var resolvedService = container.Resolve(serviceType);
+                    Debug.Log($"[MDI+ Validator] Fallback resolve successful for {serviceType.Name}");
+                    return resolvedService != null;
+                }
+                catch (Exception fallbackEx)
+                {
+                    Debug.Log($"[MDI+ Validator] Fallback resolve failed for {serviceType.Name}: {fallbackEx.Message}");
+                    return false;
                 }
             }
-            catch
-            {
-                return false;
-            }
-            
-            return false;
         }
-        
+
         private MDIContainer FindCurrentContainer()
         {
-            // Try to find container in scene
-            var bootstrapper = UnityEngine.Object.FindObjectOfType<MDI.Bootstrap.MDIBootstrapper>();
-            if (bootstrapper != null)
+            // Try to get global container first (most reliable)
+            var globalContainerProperty = typeof(MDI.Core.MDI).GetProperty("GlobalContainer", BindingFlags.Public | BindingFlags.Static);
+            if (globalContainerProperty?.GetValue(null) is MDIContainer globalContainer)
             {
-                var containerField = bootstrapper.GetType().GetField("_container", BindingFlags.NonPublic | BindingFlags.Instance);
+                Debug.Log($"[MDI+ Validator] Global container found with {globalContainer.GetRegisteredServiceTypes().Length} services (HashCode: {globalContainer.GetHashCode()})");
+                var registeredTypes = globalContainer.GetRegisteredServiceTypes();
+                Debug.Log($"[MDI+ Validator] Registered service types: {string.Join(", ", registeredTypes.Select(t => t.Name))}");
+                return globalContainer;
+            }
+            else
+            {
+                Debug.Log("[MDI+ Validator] Global container not found or empty");
+            }
+
+            // Try to find MDIBootstrapper in scene
+            var mdiBootstrapper = UnityEngine.Object.FindObjectOfType<MDIBootstrapper>();
+            if (mdiBootstrapper != null)
+            {
+                var containerField = mdiBootstrapper.GetType().GetField("_container", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (containerField?.GetValue(mdiBootstrapper) is MDIContainer container)
+                {
+                    return container;
+                }
+            }
+
+            // Try to find any bootstrapper (including GameBootstrapper) in scene
+            var allBootstrappers = UnityEngine.Object.FindObjectsOfType<MonoBehaviour>()
+                .Where(mb => mb.GetType().Name.Contains("Bootstrap"));
+            
+            foreach (var bootstrapper in allBootstrappers)
+            {
+                // Look for container field
+                var containerField = bootstrapper.GetType()
+                    .GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
+                    .FirstOrDefault(f => f.FieldType == typeof(MDIContainer));
+                
                 if (containerField?.GetValue(bootstrapper) is MDIContainer container)
                 {
                     return container;
                 }
             }
-            
-            // Try to get global container
-            var globalContainerProperty = typeof(MDI.Core.MDI).GetProperty("GlobalContainer", BindingFlags.Public | BindingFlags.Static);
-            if (globalContainerProperty?.GetValue(null) is MDIContainer globalContainer)
-            {
-                return globalContainer;
-            }
-            
+
             return null;
         }
     }
-    
+
     /// <summary>
     /// Validation result container
     /// </summary>
@@ -439,27 +462,27 @@ namespace MDI.Editor.Validation
         public List<string> Errors { get; } = new List<string>();
         public List<string> Warnings { get; } = new List<string>();
         public List<string> Infos { get; } = new List<string>();
-        
+
         public bool HasErrors => Errors.Count > 0;
         public bool HasWarnings => Warnings.Count > 0;
         public bool HasInfos => Infos.Count > 0;
         public bool IsValid => !HasErrors;
-        
+
         public void AddError(string message) => Errors.Add(message);
         public void AddWarning(string message) => Warnings.Add(message);
         public void AddInfo(string message) => Infos.Add(message);
-        
+
         public void Merge(ValidationResult other)
         {
             Errors.AddRange(other.Errors);
             Warnings.AddRange(other.Warnings);
             Infos.AddRange(other.Infos);
         }
-        
+
         public override string ToString()
         {
             var result = new System.Text.StringBuilder();
-            
+
             if (HasErrors)
             {
                 result.AppendLine("Errors:");
@@ -468,7 +491,7 @@ namespace MDI.Editor.Validation
                     result.AppendLine($"  - {error}");
                 }
             }
-            
+
             if (HasWarnings)
             {
                 result.AppendLine("Warnings:");
@@ -477,7 +500,7 @@ namespace MDI.Editor.Validation
                     result.AppendLine($"  - {warning}");
                 }
             }
-            
+
             if (HasInfos)
             {
                 result.AppendLine("Info:");
@@ -486,7 +509,7 @@ namespace MDI.Editor.Validation
                     result.AppendLine($"  - {info}");
                 }
             }
-            
+
             return result.ToString();
         }
     }
