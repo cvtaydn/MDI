@@ -14,6 +14,9 @@ namespace MDI.Containers
         private readonly Dictionary<Type, ServiceDescriptor> _services;
         private readonly Dictionary<Type, object> _singletons;
         private readonly Dictionary<Type, object> _scopedInstances;
+        private readonly DependencyGraph _dependencyGraph;
+        private readonly ServiceMonitor _serviceMonitor;
+        private readonly HealthChecker _healthChecker;
         private bool _disposed;
 
         /// <summary>
@@ -24,7 +27,25 @@ namespace MDI.Containers
             _services = new Dictionary<Type, ServiceDescriptor>();
             _singletons = new Dictionary<Type, object>();
             _scopedInstances = new Dictionary<Type, object>();
+            _dependencyGraph = new DependencyGraph();
+            _serviceMonitor = new ServiceMonitor();
+            _healthChecker = new HealthChecker(this);
         }
+        
+        /// <summary>
+        /// Dependency graph'a erişim
+        /// </summary>
+        public DependencyGraph DependencyGraph => _dependencyGraph;
+        
+        /// <summary>
+        /// Service monitor'a erişim
+        /// </summary>
+        public ServiceMonitor ServiceMonitor => _serviceMonitor;
+        
+        /// <summary>
+        /// Health checker'a erişim
+        /// </summary>
+        public HealthChecker HealthChecker => _healthChecker;
 
         /// <summary>
         /// Service'i container'a register eder (default: Transient)
@@ -55,6 +76,12 @@ namespace MDI.Containers
 
             var descriptor = new ServiceDescriptor(serviceType, implementationType, lifetime);
             _services[serviceType] = descriptor;
+            
+            // Dependency graph'a service'i ekle
+            _dependencyGraph.AddService(serviceType, implementationType.Name);
+            
+            // Constructor dependency'lerini analiz et ve ekle
+            AnalyzeAndAddDependencies(serviceType, implementationType);
 
             return this; // Fluent API için
         }
@@ -75,6 +102,88 @@ namespace MDI.Containers
             where TImplementation : class, TService
         {
             return Register<TService, TImplementation>(ServiceLifetime.Transient);
+        }
+
+        /// <summary>
+        /// Service'i priority ve execution order ile register eder
+        /// </summary>
+        public IContainer RegisterWithOrder<TService, TImplementation>(int priority = 0, int executionOrder = 0, string name = null) 
+            where TImplementation : class, TService
+        {
+            ThrowIfDisposed();
+            
+            var serviceType = typeof(TService);
+            var implementationType = typeof(TImplementation);
+
+            var descriptor = new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient)
+            {
+                Priority = priority,
+                ExecutionOrder = executionOrder,
+                Name = name ?? implementationType.Name
+            };
+            
+            _services[serviceType] = descriptor;
+            
+            // Dependency graph'a service'i ekle
+            _dependencyGraph.AddService(serviceType, name ?? implementationType.Name);
+            
+            // Constructor dependency'lerini analiz et ve ekle
+            AnalyzeAndAddDependencies(serviceType, implementationType);
+            
+            return this;
+        }
+
+        /// <summary>
+        /// Service'i singleton olarak priority ve execution order ile register eder
+        /// </summary>
+        public IContainer RegisterSingletonWithOrder<TService, TImplementation>(int priority = 0, int executionOrder = 0, string name = null) 
+            where TImplementation : class, TService
+        {
+            ThrowIfDisposed();
+            
+            var serviceType = typeof(TService);
+            var implementationType = typeof(TImplementation);
+
+            var descriptor = new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton)
+            {
+                Priority = priority,
+                ExecutionOrder = executionOrder,
+                Name = name ?? implementationType.Name
+            };
+            
+            _services[serviceType] = descriptor;
+            return this;
+        }
+
+        /// <summary>
+        /// Tüm servisleri execution order'a göre sıralı şekilde başlatır
+        /// </summary>
+        public void InitializeServicesInOrder()
+        {
+            ThrowIfDisposed();
+            
+            // Servisleri önce priority'ye göre, sonra execution order'a göre sırala
+            var orderedServices = _services.Values
+                .OrderByDescending(s => s.Priority)
+                .ThenBy(s => s.ExecutionOrder)
+                .ToList();
+
+            foreach (var descriptor in orderedServices)
+            {
+                try
+                {
+                    // Service'i resolve ederek başlat
+                    Resolve(descriptor.ServiceType);
+                    
+                    // Debug log
+                    UnityEngine.Debug.Log($"[MDI+] Service initialized: {descriptor.Name ?? descriptor.ServiceType.Name} (Priority: {descriptor.Priority}, Order: {descriptor.ExecutionOrder})");
+                }
+                catch (Exception ex)
+                {
+                    UnityEngine.Debug.LogError($"[MDI+] Failed to initialize service {descriptor.Name ?? descriptor.ServiceType.Name}: {ex.Message}");
+                    throw;
+                }
+            }
         }
 
         /// <summary>
@@ -99,7 +208,32 @@ namespace MDI.Containers
                     $"Service of type {serviceType.Name} is not registered");
             }
 
-            return CreateInstance(descriptor);
+            // Dependency graph'da service access'i kaydet
+            _dependencyGraph.RecordServiceAccess(serviceType);
+            
+            // Service monitor'da resolve başlangıcını kaydet
+            _serviceMonitor.StartResolve(serviceType, descriptor.Name);
+            
+            try
+            {
+                _dependencyGraph.UpdateServiceStatus(serviceType, ServiceStatus.Initializing);
+                _serviceMonitor.UpdateStatus(serviceType, ServiceStatus.Initializing);
+                
+                var instance = CreateInstance(descriptor);
+                
+                _dependencyGraph.UpdateServiceStatus(serviceType, ServiceStatus.Initialized);
+                _serviceMonitor.UpdateStatus(serviceType, ServiceStatus.Initialized);
+                _serviceMonitor.EndResolve(serviceType, true);
+                
+                return instance;
+            }
+            catch (Exception ex)
+            {
+                _dependencyGraph.UpdateServiceStatus(serviceType, ServiceStatus.Error);
+                _serviceMonitor.UpdateStatus(serviceType, ServiceStatus.Error);
+                _serviceMonitor.EndResolve(serviceType, false, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -200,6 +334,9 @@ namespace MDI.Containers
             _services.Clear();
             _singletons.Clear();
             _scopedInstances.Clear();
+            _dependencyGraph.Clear();
+            _serviceMonitor.Clear();
+            _healthChecker.Clear();
         }
 
         /// <summary>
@@ -248,6 +385,151 @@ namespace MDI.Containers
                 Clear();
                 _disposed = true;
             }
+        }
+
+        /// <summary>
+        /// Constructor dependency'lerini analiz eder ve dependency graph'a ekler
+        /// </summary>
+        private void AnalyzeAndAddDependencies(Type serviceType, Type implementationType)
+        {
+            var constructors = implementationType.GetConstructors();
+            if (constructors.Length == 0) return;
+            
+            // En çok parametreli constructor'ı seç
+            var constructor = constructors.OrderByDescending(c => c.GetParameters().Length).First();
+            var parameters = constructor.GetParameters();
+            
+            foreach (var parameter in parameters)
+            {
+                var dependencyType = parameter.ParameterType;
+                
+                // Primitive type'ları ve string'i atla
+                if (dependencyType.IsPrimitive || dependencyType == typeof(string))
+                    continue;
+                    
+                // Dependency ilişkisini ekle
+                _dependencyGraph.AddDependency(serviceType, dependencyType);
+            }
+        }
+        
+        /// <summary>
+        /// Circular dependency kontrolü yapar
+        /// </summary>
+        public bool ValidateDependencies()
+        {
+            return !_dependencyGraph.DetectCircularDependencies();
+        }
+        
+        /// <summary>
+        /// Dependency tree'yi string olarak döndürür
+        /// </summary>
+        public string GetDependencyTree(Type serviceType)
+        {
+            return _dependencyGraph.GetDependencyTree(serviceType);
+        }
+        
+        /// <summary>
+        /// Service istatistiklerini döndürür
+        /// </summary>
+        public Dictionary<string, object> GetServiceStatistics()
+        {
+            return _dependencyGraph.GetStatistics();
+        }
+        
+        /// <summary>
+        /// Performance raporu oluşturur
+        /// </summary>
+        public string GeneratePerformanceReport()
+        {
+            return _serviceMonitor.GeneratePerformanceReport();
+        }
+        
+        /// <summary>
+        /// Belirli bir service için detaylı rapor
+        /// </summary>
+        public string GetServiceReport(Type serviceType)
+        {
+            return _serviceMonitor.GetServiceReport(serviceType);
+        }
+        
+        /// <summary>
+        /// Belirli bir service için detaylı rapor (generic)
+        /// </summary>
+        public string GetServiceReport<TService>()
+        {
+            return GetServiceReport(typeof(TService));
+        }
+        
+        /// <summary>
+        /// Service metrics'i JSON olarak export eder
+        /// </summary>
+        public string ExportMetricsAsJson()
+        {
+            return _serviceMonitor.ExportMetricsAsJson();
+        }
+        
+        /// <summary>
+        /// Health check sistemini başlatır
+        /// </summary>
+        public void StartHealthCheck()
+        {
+            ThrowIfDisposed();
+            _healthChecker.StartAutoCheck();
+        }
+        
+        /// <summary>
+        /// Health check sistemini durdurur
+        /// </summary>
+        public void StopHealthCheck()
+        {
+            ThrowIfDisposed();
+            _healthChecker.StopAutoCheck();
+        }
+        
+        /// <summary>
+        /// Tüm servislerin sağlık durumunu kontrol eder
+        /// </summary>
+        public async System.Threading.Tasks.Task<Dictionary<Type, HealthCheckResult>> CheckAllServicesHealthAsync()
+        {
+            ThrowIfDisposed();
+            return await _healthChecker.CheckAllServicesHealthAsync();
+        }
+        
+        /// <summary>
+        /// Belirli bir servisin sağlık durumunu kontrol eder
+        /// </summary>
+        public async System.Threading.Tasks.Task<HealthCheckResult> CheckServiceHealthAsync<TService>()
+        {
+            ThrowIfDisposed();
+            return await _healthChecker.CheckServiceHealthAsync(typeof(TService));
+        }
+        
+        /// <summary>
+        /// Genel sistem sağlık durumunu alır
+        /// </summary>
+        public HealthStatus GetOverallHealth()
+        {
+            ThrowIfDisposed();
+            return _healthChecker.GetOverallHealth();
+        }
+        
+        /// <summary>
+        /// Sağlık raporu oluşturur
+        /// </summary>
+        public string GenerateHealthReport()
+        {
+            ThrowIfDisposed();
+            return _healthChecker.GenerateHealthReport();
+        }
+        
+        /// <summary>
+        /// Container'ı günceller - health check ve monitoring için
+        /// MonoBehaviour'da Update metodunda çağrılmalı
+        /// </summary>
+        public void Update()
+        {
+            ThrowIfDisposed();
+            _healthChecker.Update();
         }
 
         /// <summary>

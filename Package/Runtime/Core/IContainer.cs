@@ -37,6 +37,35 @@ namespace MDI.Core
             where TImplementation : class, TService;
 
         /// <summary>
+        /// Service'i priority ve execution order ile register eder
+        /// </summary>
+        /// <typeparam name="TService">Service interface tipi</typeparam>
+        /// <typeparam name="TImplementation">Implementation tipi</typeparam>
+        /// <param name="priority">Service önceliği</param>
+        /// <param name="executionOrder">Başlatılma sırası</param>
+        /// <param name="name">Service adı</param>
+        /// <returns>Container instance (fluent API için)</returns>
+        IContainer RegisterWithOrder<TService, TImplementation>(int priority = 0, int executionOrder = 0, string name = null) 
+            where TImplementation : class, TService;
+
+        /// <summary>
+        /// Service'i singleton olarak priority ve execution order ile register eder
+        /// </summary>
+        /// <typeparam name="TService">Service interface tipi</typeparam>
+        /// <typeparam name="TImplementation">Implementation tipi</typeparam>
+        /// <param name="priority">Service önceliği</param>
+        /// <param name="executionOrder">Başlatılma sırası</param>
+        /// <param name="name">Service adı</param>
+        /// <returns>Container instance (fluent API için)</returns>
+        IContainer RegisterSingletonWithOrder<TService, TImplementation>(int priority = 0, int executionOrder = 0, string name = null) 
+            where TImplementation : class, TService;
+
+        /// <summary>
+        /// Tüm servisleri execution order'a göre sıralı şekilde başlatır
+        /// </summary>
+        void InitializeServicesInOrder();
+
+        /// <summary>
         /// Service'i resolve eder
         /// </summary>
         /// <typeparam name="TService">Service tipi</typeparam>

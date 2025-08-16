@@ -23,6 +23,26 @@ namespace MDI.Core
         public ServiceLifetime Lifetime { get; }
 
         /// <summary>
+        /// Service'in başlatılma önceliği (yüksek sayı = yüksek öncelik)
+        /// </summary>
+        public int Priority { get; set; } = 0;
+
+        /// <summary>
+        /// Service'in başlatılma sırası (düşük sayı = önce başlatılır)
+        /// </summary>
+        public int ExecutionOrder { get; set; } = 0;
+
+        /// <summary>
+        /// Service'in adı (debugging ve tracking için)
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Service'in açıklaması
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
         /// Factory function (eğer custom creation logic varsa)
         /// </summary>
         public Func<object> Factory { get; }
