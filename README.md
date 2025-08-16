@@ -19,7 +19,7 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 3. `Add package from git URL` seçin
 4. `https://github.com/cvtaydn/MDI.git` girin
 
-**Not:** Git URL ile ekleme yapamazsanız aşağıdaki alternatif yöntemleri kullanın.
+**Not:** Artık package.json dosyası root seviyesinde olduğu için Git URL ile ekleme çalışmalıdır. Sorun yaşarsanız aşağıdaki alternatif yöntemleri kullanın.
 
 ### Yöntem 2: Manuel Package Kurulumu
 1. Bu repository'yi indirin (Download ZIP)
@@ -38,7 +38,7 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 ### Yöntem 4: Local Package
 1. Bu repository'yi clone edin veya indirin
 2. Unity Package Manager'da `+` > `Add package from disk` seçin
-3. İndirdiğiniz klasördeki `Package/package.json` dosyasını seçin
+3. İndirdiğiniz klasördeki root seviyesindeki `package.json` dosyasını seçin
 
 ## 🎯 Hızlı Başlangıç
 
