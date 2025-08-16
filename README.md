@@ -17,7 +17,7 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 1. Unity'de `Window > Package Manager` açın
 2. `+` butonuna tıklayın
 3. `Add package from git URL` seçin
-4. `https://github.com/mdi-plus/mdi-unity.git` girin
+4. `https://github.com/cvtaydn/MDI.git` girin
 
 ### Manuel Kurulum
 1. Bu repository'yi clone edin
@@ -131,9 +131,9 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 🆘 Destek
 
-- [Issues](https://github.com/mdi-plus/mdi-unity/issues)
-- [Discussions](https://github.com/mdi-plus/mdi-unity/discussions)
-- [Wiki](https://github.com/mdi-plus/mdi-unity/wiki)
+- [Issues](https://github.com/cvtaydn/MDI/issues)
+- [Discussions](https://github.com/cvtaydn/MDI/discussions)
+- [Wiki](https://github.com/cvtaydn/MDI/wiki)
 
 ## 🎯 Roadmap
 

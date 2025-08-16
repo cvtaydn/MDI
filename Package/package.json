@@ -20,17 +20,17 @@
     "clean-architecture"
   ],
   "author": {
-    "name": "MDI+ Team",
-    "email": "info@mdi.com",
-    "url": "https://github.com/mdi-plus"
+    "name": "MDI Team",
+    "email": "team@mdi-plus.com",
+    "url": "https://github.com/cvtaydn"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdi-plus/mdi-unity.git"
+    "url": "https://github.com/cvtaydn/MDI.git"
   },
-  "documentationUrl": "https://github.com/mdi-plus/mdi-unity/wiki",
-  "changelogUrl": "https://github.com/mdi-plus/mdi-unity/blob/main/CHANGELOG.md",
+  "documentationUrl": "https://github.com/cvtaydn/MDI/wiki",
+  "changelogUrl": "https://github.com/cvtaydn/MDI/blob/main/CHANGELOG.md",
   "samples": [
     {
       "displayName": "Basic DI Example",
