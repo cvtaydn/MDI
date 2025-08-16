@@ -96,6 +96,36 @@ namespace MDI.Core
                 };
             }
         }
+
+        /// <summary>
+        /// Service'i dependency graph'tan kaldırır
+        /// </summary>
+        public void RemoveService(Type serviceType)
+        {
+            if (_nodes.TryGetValue(serviceType, out var node))
+            {
+                // Bu service'e bağımlı olan service'lerin dependency listesinden kaldır
+                foreach (var dependent in node.Dependents.ToList())
+                {
+                    if (_nodes.TryGetValue(dependent, out var dependentNode))
+                    {
+                        dependentNode.Dependencies.Remove(serviceType);
+                    }
+                }
+                
+                // Bu service'in bağımlı olduğu service'lerin dependent listesinden kaldır
+                foreach (var dependency in node.Dependencies.ToList())
+                {
+                    if (_nodes.TryGetValue(dependency, out var dependencyNode))
+                    {
+                        dependencyNode.Dependents.Remove(serviceType);
+                    }
+                }
+                
+                // Node'u kaldır
+                _nodes.Remove(serviceType);
+            }
+        }
         
         /// <summary>
         /// Belirtilen service type için node'u getirir
@@ -103,6 +133,26 @@ namespace MDI.Core
         public DependencyNode GetNode(Type serviceType)
         {
             return _nodes.TryGetValue(serviceType, out var node) ? node : null;
+        }
+        
+        /// <summary>
+        /// Tüm node'ları döndürür
+        /// </summary>
+        public IEnumerable<DependencyNode> GetAllNodes()
+        {
+            return _nodes.Values;
+        }
+        
+        /// <summary>
+        /// Belirtilen service type'ın dependency'lerini döndürür
+        /// </summary>
+        public IEnumerable<Type> GetDependencies(Type serviceType)
+        {
+            if (_nodes.TryGetValue(serviceType, out var node))
+            {
+                return node.Dependencies;
+            }
+            return Enumerable.Empty<Type>();
         }
         
         /// <summary>

@@ -109,6 +109,30 @@ namespace MDI.Core
         public IReadOnlyList<string> Logs => _logs;
         
         /// <summary>
+        /// Toplam resolve sayısını döndürür
+        /// </summary>
+        public int TotalResolveCount => _metrics.Values.Sum(m => m.TotalResolveCount);
+        
+        /// <summary>
+        /// Ortalama resolve süresini döndürür
+        /// </summary>
+        public double AverageResolveTime => _metrics.Values.Any() ? _metrics.Values.Average(m => m.AverageResolveTime) : 0;
+        
+        /// <summary>
+        /// Toplam bellek kullanımını döndürür
+        /// </summary>
+        public long MemoryUsage => _metrics.Values.Sum(m => m.MemoryUsage);
+        
+        /// <summary>
+        /// Log kayıtlarını temizler
+        /// </summary>
+        public void ClearLogs()
+        {
+            _logs.Clear();
+            LogEvent("Logs cleared");
+        }
+        
+        /// <summary>
         /// Service resolve başlangıcını kaydeder
         /// </summary>
         public void StartResolve(Type serviceType, string serviceName = null)

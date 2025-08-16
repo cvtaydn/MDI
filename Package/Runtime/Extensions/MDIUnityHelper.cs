@@ -170,7 +170,7 @@ namespace MDI.Extensions
         /// </summary>
         /// <param name="obj">Injection yapılacak object</param>
         /// <param name="container">Kullanılacak container</param>
-        private static void InjectObject(object obj, IContainer container)
+        public static void InjectObject(object obj, IContainer container)
         {
             var type = obj.GetType();
 

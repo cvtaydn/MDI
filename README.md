@@ -5,10 +5,11 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 ## 🚀 Özellikler
 
 - **SOLID Principles**: Clean architecture ve SOLID prensiplerine uygun
-- **Easy to Use**: Attribute-based injection, fluent API
-- **Pattern Support**: Signal system, Command pattern, Function pipeline
-- **Unity Integration**: MonoBehaviour, ScriptableObject desteği
-- **Performance**: Optimized memory management, fast resolution
+- **Easy to Use**: Attribute-based injection, fluent API, helper metodlar
+- **Advanced Features**: Real-time validation, dependency monitoring, health checks
+- **Unity Integration**: MonoBehaviour, ScriptableObject, Editor tools desteği
+- **Performance**: Optimized memory management, fast resolution, performance monitoring
+- **Developer Tools**: Visual debugging, setup wizard, code generation
 - **Extensible**: Plugin sistemi ile genişletilebilir
 
 ## 📦 Kurulum
@@ -42,7 +43,13 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 
 ## 🎯 Hızlı Başlangıç
 
-### 1. Basit Kullanım
+### 1. Setup Wizard ile Kurulum
+```csharp
+// Unity Editor'de: Tools > MDI+ > Setup Wizard
+// Otomatik kurulum ve konfigürasyon
+```
+
+### 2. Basit Kullanım
 ```csharp
 // Container oluştur
 using var container = new MDIContainer();
@@ -57,7 +64,27 @@ var logger = container.Resolve<ILogger>();
 var emailService = container.Resolve<IEmailService>();
 ```
 
-### 2. Unity Integration
+### 3. Fluent API ile Gelişmiş Kullanım
+```csharp
+// Configuration ile
+MDIConfiguration.ConfigureGlobalServices(config =>
+{
+    config.Configure<ILogger, ConsoleLogger>()
+          .AsSingleton()
+          .WithName("MainLogger")
+          .InDebugOnly();
+          
+    config.Configure<IEmailService, EmailService>()
+          .AsTransient()
+          .When(() => Application.isPlaying);
+});
+
+// Helper metodlar ile
+MDI.UseService<ILogger>(logger => logger.Log("Hello World!"));
+MDI.IfServiceExists<IEmailService>(email => email.SendWelcomeEmail());
+```
+
+### 4. Unity Integration
 ```csharp
 public class GameManager : MonoBehaviour
 {
@@ -69,53 +96,63 @@ public class GameManager : MonoBehaviour
         MDI.Inject(this);
     }
 }
-```
 
-### 3. Signal System
-```csharp
-// Signal tanımla
-public class PlayerDeathSignal : ISignal
+// Auto-registration ile
+[MDIAutoRegister(ServiceLifetime.Singleton)]
+public class PlayerService : IPlayerService
 {
-    public Vector3 DeathPosition { get; set; }
+    // Otomatik olarak register edilir
 }
-
-// Signal gönder
-SignalBus.Publish(new PlayerDeathSignal { 
-    DeathPosition = transform.position 
-});
-
-// Signal dinle
-SignalBus.Subscribe<PlayerDeathSignal>(OnPlayerDeath);
 ```
 
-### 4. Command Pattern
+### 5. Validation ve Monitoring
 ```csharp
-// Command'ları sırayla çalıştır
-CommandExecutor.ExecuteSequentially(
-    new MovePlayerCommand { TargetPosition = new Vector3(10, 0, 0) },
-    new PlayAnimationCommand { AnimationName = "Walk" }
-);
+// Real-time validation
+var validator = new MDIDependencyValidator();
+var issues = validator.ValidateAllDependencies();
+
+// Performance monitoring
+var report = MDI.GetPerformanceReport();
+Debug.Log(report);
+
+// Health check
+if (MDI.IsHealthy())
+{
+    Debug.Log("All services are healthy!");
+}
+```
+
+### 6. Editor Tools
+```csharp
+// Unity Editor'de:
+// - Tools > MDI+ > Monitor Window (service monitoring)
+// - Tools > MDI+ > Validation Window (dependency validation)
+// - Tools > MDI+ > Service Generator (code generation)
+// - Inspector'da service'leri görsel yönetim
 ```
 
 ## 🏗️ Mimari
 
 ### Core DI System
-- **Container Types**: Singleton, Transient, Scoped, Lazy
-- **Lifecycle Management**: Unity event entegrasyonu
-- **Validation**: Circular dependency detection
-- **Performance**: Fast resolution, memory pooling
+- **Container Types**: Singleton, Transient, Scoped, Factory, Instance
+- **Lifecycle Management**: Unity event entegrasyonu, otomatik cleanup
+- **Validation**: Circular dependency detection, real-time monitoring
+- **Performance**: Fast resolution, memory pooling, performance metrics
+- **Helper Methods**: TryResolve, UseService, IfServiceExists, ResolveMultiple
 
-### Pattern System
-- **Signal System**: Event-driven communication
-- **Command Pattern**: Sequential, Parallel, Conditional execution
-- **Function Pipeline**: Data transformation chains
-- **Observer Pattern**: Reactive programming support
+### Advanced Features
+- **Auto-Registration**: Attribute-based service discovery
+- **Fluent Configuration**: MDIServiceConfiguration ile kolay setup
+- **Conditional Registration**: Platform, debug/release, custom conditions
+- **Health Monitoring**: Service health checks ve reporting
+- **Dependency Analysis**: Dependency graph ve validation
 
 ### Unity Integration
-- **MonoBehaviour Support**: Automatic injection
-- **ScriptableObject Support**: Configuration injection
-- **Prefab Injection**: Instant injection on creation
-- **Scene Scoping**: Scene-based service lifetime
+- **MonoBehaviour Support**: Automatic injection, property drawers
+- **Editor Tools**: Setup wizard, monitor window, validation window
+- **Code Generation**: Template-based service generator
+- **Visual Debugging**: Inspector integration, dependency visualization
+- **Bootstrap System**: Otomatik container kurulumu
 
 ## 📚 Dokümantasyon
 
@@ -154,14 +191,24 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 🎯 Roadmap
 
-- [x] Core DI System
-- [x] Basic Unity Integration
-- [ ] Signal System
-- [ ] Command Pattern
-- [ ] Function Pipeline
-- [ ] Advanced Unity Features
-- [ ] Performance Optimization
-- [ ] Visual Debug Tools
+### ✅ Tamamlanan Özellikler
+- [x] Core DI System (Container, Registration, Resolution)
+- [x] Unity Integration (MonoBehaviour, Editor tools)
+- [x] Fluent API (Configuration, Helper methods)
+- [x] Validation System (Real-time dependency checking)
+- [x] Performance Monitoring (Metrics, Health checks)
+- [x] Developer Tools (Setup wizard, Visual debugging)
+- [x] Auto-Registration (Attribute-based discovery)
+- [x] Code Generation (Template-based generators)
+
+### 🚧 Gelecek Özellikler
+- [ ] Signal System (Event-driven communication)
+- [ ] Command Pattern (Sequential, Parallel execution)
+- [ ] Function Pipeline (Data transformation chains)
+- [ ] Advanced Scoping (Scene-based, custom scopes)
+- [ ] Plugin System (Extensible architecture)
+- [ ] Performance Optimization (IL generation, caching)
+- [ ] Documentation (Comprehensive guides, examples)
 
 ---
 

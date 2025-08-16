@@ -35,6 +35,60 @@ namespace MDI.Core
         /// <returns>Container instance (fluent API için)</returns>
         IContainer RegisterTransient<TService, TImplementation>() 
             where TImplementation : class, TService;
+            
+        /// <summary>
+        /// Service'i güvenli şekilde resolve eder (null döndürür hata fırlatmaz)
+        /// </summary>
+        /// <typeparam name="TService">Service tipi</typeparam>
+        /// <returns>Service instance veya null</returns>
+        TService TryResolve<TService>() where TService : class;
+        
+        /// <summary>
+        /// Service'i güvenli şekilde type ile resolve eder
+        /// </summary>
+        /// <param name="serviceType">Service tipi</param>
+        /// <returns>Service instance veya null</returns>
+        object TryResolve(Type serviceType);
+        
+        /// <summary>
+        /// Service'in register edilip edilmediğini kontrol eder
+        /// </summary>
+        /// <typeparam name="TService">Service tipi</typeparam>
+        /// <returns>Register edilmişse true</returns>
+        bool IsRegistered<TService>() where TService : class;
+        
+        /// <summary>
+        /// Service'in register edilip edilmediğini type ile kontrol eder
+        /// </summary>
+        /// <param name="serviceType">Service tipi</param>
+        /// <returns>Register edilmişse true</returns>
+        bool IsRegistered(Type serviceType);
+        
+        /// <summary>
+        /// Birden fazla service'i aynı anda resolve eder
+        /// </summary>
+        /// <typeparam name="TService">Service tipi</typeparam>
+        /// <returns>Service instance'ları</returns>
+        TService[] ResolveAll<TService>() where TService : class;
+        
+        /// <summary>
+        /// Service'i unregister eder
+        /// </summary>
+        /// <typeparam name="TService">Service tipi</typeparam>
+        /// <returns>Başarılıysa true</returns>
+        bool UnregisterService<TService>();
+        
+        /// <summary>
+        /// Service'i type ile unregister eder
+        /// </summary>
+        /// <param name="serviceType">Service tipi</param>
+        /// <returns>Başarılıysa true</returns>
+        bool UnregisterService(Type serviceType);
+        
+        /// <summary>
+        /// Tüm servisleri temizler
+        /// </summary>
+        void Clear();
 
         /// <summary>
         /// Service'i priority ve execution order ile register eder
@@ -80,15 +134,13 @@ namespace MDI.Core
         object Resolve(Type serviceType);
 
         /// <summary>
-        /// Service'in container'da register edilip edilmediğini kontrol eder
+        /// Service'i factory ile register eder
         /// </summary>
         /// <typeparam name="TService">Service tipi</typeparam>
-        /// <returns>True eğer register edilmişse</returns>
-        bool IsRegistered<TService>() where TService : class;
+        /// <param name="factory">Factory function</param>
+        /// <param name="lifetime">Service lifetime</param>
+        /// <returns>Container instance (fluent API için)</returns>
+        IContainer Register<TService>(Func<TService> factory, ServiceLifetime lifetime) where TService : class;
 
-        /// <summary>
-        /// Tüm registered service'leri temizler
-        /// </summary>
-        void Clear();
     }
 }

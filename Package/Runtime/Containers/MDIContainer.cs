@@ -46,6 +46,41 @@ namespace MDI.Containers
         /// Health checker'a erişim
         /// </summary>
         public HealthChecker HealthChecker => _healthChecker;
+        
+        /// <summary>
+        /// Container'ın sağlık durumunu kontrol eder
+        /// </summary>
+        public bool IsHealthy() => _healthChecker.GetOverallHealth() == HealthStatus.Healthy;
+        
+        /// <summary>
+        /// Tüm service descriptor'larını döndürür
+        /// </summary>
+        public IReadOnlyDictionary<Type, ServiceDescriptor> ServiceDescriptors => _services;
+        
+        /// <summary>
+        /// Toplam resolve sayısını döndürür
+        /// </summary>
+        public int TotalResolveCount => _serviceMonitor.TotalResolveCount;
+        
+        /// <summary>
+        /// Ortalama resolve süresini döndürür
+        /// </summary>
+        public double AverageResolveTime => _serviceMonitor.AverageResolveTime;
+        
+        /// <summary>
+        /// Bellek kullanımını döndürür
+        /// </summary>
+        public long MemoryUsage => _serviceMonitor.MemoryUsage;
+        
+        /// <summary>
+        /// Service bağımlılıklarını döndürür
+        /// </summary>
+        public IEnumerable<Type> GetDependencies(Type serviceType) => _dependencyGraph.GetDependencies(serviceType);
+        
+        /// <summary>
+        /// Tüm service descriptor'larına erişim
+        /// </summary>
+        public Dictionary<Type, ServiceDescriptor> GetServiceDescriptors() => new Dictionary<Type, ServiceDescriptor>(_services);
 
         /// <summary>
         /// Service'i container'a register eder (default: Transient)
@@ -102,6 +137,32 @@ namespace MDI.Containers
             where TImplementation : class, TService
         {
             return Register<TService, TImplementation>(ServiceLifetime.Transient);
+        }
+
+        /// <summary>
+        /// Service'i scoped olarak register eder
+        /// </summary>
+        public IContainer RegisterScoped<TService, TImplementation>() 
+            where TImplementation : class, TService
+        {
+            return Register<TService, TImplementation>(ServiceLifetime.Scoped);
+        }
+
+        /// <summary>
+        /// Service'i factory function ile register eder
+        /// </summary>
+        public IContainer Register<TService>(Func<TService> factory, ServiceLifetime lifetime) where TService : class
+        {
+            ThrowIfDisposed();
+            
+            var serviceType = typeof(TService);
+            var descriptor = new ServiceDescriptor(serviceType, () => factory(), lifetime);
+            _services[serviceType] = descriptor;
+            
+            // Dependency graph'a service'i ekle
+            _dependencyGraph.AddService(serviceType, $"Factory<{serviceType.Name}>");
+            
+            return this; // Fluent API için
         }
 
         /// <summary>
@@ -235,6 +296,141 @@ namespace MDI.Containers
                 throw;
             }
         }
+        
+        /// <summary>
+        /// Service'i güvenli şekilde resolve eder (null döndürür hata fırlatmaz)
+        /// </summary>
+        public TService TryResolve<TService>() where TService : class
+        {
+            try
+            {
+                return Resolve<TService>();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// Service'i güvenli şekilde type ile resolve eder
+        /// </summary>
+        public object TryResolve(Type serviceType)
+        {
+            try
+            {
+                return Resolve(serviceType);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// Service'in register edilip edilmediğini kontrol eder
+        /// </summary>
+        public bool IsRegistered<TService>() where TService : class
+        {
+            return _services.ContainsKey(typeof(TService));
+        }
+        
+        /// <summary>
+        /// Service'in register edilip edilmediğini type ile kontrol eder
+        /// </summary>
+        public bool IsRegistered(Type serviceType)
+        {
+            return _services.ContainsKey(serviceType);
+        }
+        
+        /// <summary>
+        /// Birden fazla service'i aynı anda resolve eder
+        /// </summary>
+        public TService[] ResolveAll<TService>() where TService : class
+        {
+            var serviceType = typeof(TService);
+            var results = new List<TService>();
+            
+            foreach (var kvp in _services)
+            {
+                if (serviceType.IsAssignableFrom(kvp.Key))
+                {
+                    try
+                    {
+                        var instance = Resolve(kvp.Key) as TService;
+                        if (instance != null)
+                        {
+                            results.Add(instance);
+                        }
+                    }
+                    catch
+                    {
+                        // Hata durumunda devam et
+                    }
+                }
+            }
+            
+            return results.ToArray();
+        }
+        
+        /// <summary>
+        /// Tüm register edilmiş service tiplerini döndürür
+        /// </summary>
+        public Type[] GetRegisteredServiceTypes()
+        {
+            return _services.Keys.ToArray();
+        }
+        
+        /// <summary>
+        /// Service descriptor'ını döndürür
+        /// </summary>
+        public ServiceDescriptor GetServiceDescriptor<TService>()
+        {
+            return GetServiceDescriptor(typeof(TService));
+        }
+        
+        /// <summary>
+        /// Service descriptor'ını type ile döndürür
+        /// </summary>
+        public ServiceDescriptor GetServiceDescriptor(Type serviceType)
+        {
+            _services.TryGetValue(serviceType, out var descriptor);
+            return descriptor;
+        }
+        
+        /// <summary>
+        /// Service'i unregister eder
+        /// </summary>
+        public bool UnregisterService<TService>()
+        {
+            return UnregisterService(typeof(TService));
+        }
+        
+        /// <summary>
+        /// Service'i type ile unregister eder
+        /// </summary>
+        public bool UnregisterService(Type serviceType)
+        {
+            var removed = _services.Remove(serviceType);
+            if (removed)
+            {
+                _singletons.Remove(serviceType);
+                _scopedInstances.Remove(serviceType);
+                _dependencyGraph.RemoveService(serviceType);
+            }
+            return removed;
+        }
+        
+        /// <summary>
+        /// Tüm servisleri temizler
+        /// </summary>
+        public void Clear()
+        {
+            _services.Clear();
+            _singletons.Clear();
+            _scopedInstances.Clear();
+            _dependencyGraph.Clear();
+        }
 
         /// <summary>
         /// Service instance'ını oluşturur
@@ -314,29 +510,6 @@ namespace MDI.Containers
                     // Transient instance'lar kaydedilmez
                     break;
             }
-        }
-
-        /// <summary>
-        /// Service'in register edilip edilmediğini kontrol eder
-        /// </summary>
-        public bool IsRegistered<TService>() where TService : class
-        {
-            return _services.ContainsKey(typeof(TService));
-        }
-
-        /// <summary>
-        /// Tüm registered service'leri temizler
-        /// </summary>
-        public void Clear()
-        {
-            ThrowIfDisposed();
-            
-            _services.Clear();
-            _singletons.Clear();
-            _scopedInstances.Clear();
-            _dependencyGraph.Clear();
-            _serviceMonitor.Clear();
-            _healthChecker.Clear();
         }
 
         /// <summary>

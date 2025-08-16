@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace MDI.Extensions
 {
@@ -6,7 +7,7 @@ namespace MDI.Extensions
     /// Unity component'lerine dependency injection yapmak için kullanılan attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
-    public class InjectAttribute : Attribute
+    public class InjectAttribute : PropertyAttribute
     {
         /// <summary>
         /// Service tipi (opsiyonel, field/property tipinden otomatik çıkarılır)
@@ -17,6 +18,16 @@ namespace MDI.Extensions
         /// Service adı (opsiyonel, named service için)
         /// </summary>
         public string ServiceName { get; set; }
+
+        /// <summary>
+        /// Injection'ın opsiyonel olup olmadığı (varsayılan: false)
+        /// </summary>
+        public bool Optional { get; set; }
+
+        /// <summary>
+        /// Service ID'si (opsiyonel, named service için)
+        /// </summary>
+        public string Id { get; set; }
 
         /// <summary>
         /// Default constructor
