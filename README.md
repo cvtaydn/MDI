@@ -13,15 +13,32 @@ Unity için gelişmiş, pattern-based, signal-driven, command-oriented dependenc
 
 ## 📦 Kurulum
 
-### Unity Package Manager ile
+### Yöntem 1: Unity Package Manager ile (Git URL)
 1. Unity'de `Window > Package Manager` açın
 2. `+` butonuna tıklayın
 3. `Add package from git URL` seçin
 4. `https://github.com/cvtaydn/MDI.git` girin
 
-### Manuel Kurulum
-1. Bu repository'yi clone edin
-2. `Runtime` ve `Editor` klasörlerini Unity projenize kopyalayın
+**Not:** Git URL ile ekleme yapamazsanız aşağıdaki alternatif yöntemleri kullanın.
+
+### Yöntem 2: Manuel Package Kurulumu
+1. Bu repository'yi indirin (Download ZIP)
+2. ZIP dosyasını açın
+3. `Package` klasörünü Unity projenizin `Packages` klasörüne kopyalayın
+4. Unity'yi yeniden başlatın
+
+### Yöntem 3: Manifest.json ile
+1. Unity projenizin `Packages/manifest.json` dosyasını açın
+2. `dependencies` bölümüne şu satırı ekleyin:
+```json
+"com.mdi.core": "https://github.com/cvtaydn/MDI.git"
+```
+3. Unity'yi yeniden başlatın
+
+### Yöntem 4: Local Package
+1. Bu repository'yi clone edin veya indirin
+2. Unity Package Manager'da `+` > `Add package from disk` seçin
+3. İndirdiğiniz klasördeki `Package/package.json` dosyasını seçin
 
 ## 🎯 Hızlı Başlangıç
 
